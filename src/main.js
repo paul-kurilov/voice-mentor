@@ -4,6 +4,7 @@ import { message } from "telegraf/filters";
 import { code } from "telegraf/format"
 import { ogg } from "./ogg.js";
 import { openai } from "./openai.js"; 
+import { removeFile } from "./utils.js"
 
 console.log(config.get('TEST_ENV'));
 
@@ -29,7 +30,8 @@ bot.on(message('voice'), async ctx => {
     const oggPath = await ogg.create(link.href, userId)
     const mp3Path = await ogg.toMp3(oggPath, userId)
     
-    const text = await openai.transcription(mp3Path)
+    const text = await openai.transcription(mp3Path) 
+
     await ctx.reply(code(`Your request: ${text}`))
 
     // without use context
@@ -41,7 +43,7 @@ bot.on(message('voice'), async ctx => {
       content: text,
     })
     
-    const response = await openai.chat(ctx.session.messages)
+    const response = await openai.chat(ctx.session.messages).finally(removeFile(mp3Path)) 
 
     ctx.session.messages.push({
       role: openai.roles.ASSISTANT, 
