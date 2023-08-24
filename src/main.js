@@ -14,6 +14,9 @@ const INITIAL_SESSION = {
 
 const bot = new Telegraf(config.get('TELEGRAM_TOKEN'))
 
+// const setq = (q) => `Я прохожу интервью на должность Full Stack Software Engineer. Ответь на этот вопрос как можно короче и лаконичнее: "${q}". Если это позволяет и возможно, то ответить прям одним предложением или ещё лучше просто тезисно. Ответ напиши сперва на очень простом английском как будто я очень слабо знаю английский, потом сделай несколько переносов строки и напиши перевод на русском`
+const setq = (q) => `Помоги мне коротко ответить на интервью Full Stack Software Engineer. Ответь очень коротко и лаконично на вопрос: "${q}". Ответить тезисно или просто очень коротко. Ответ напиши на очень простом английском языке как будто я очень слабо знаю английский, потом сделай несколько переносов строки и напиши перевод на русском`
+
 bot.use(session())
 
 bot.command(['new', 'start'], async (ctx) => {
@@ -40,7 +43,7 @@ bot.on(message('voice'), async ctx => {
 
     ctx.session.messages.push({
       role: openai.roles.USER, 
-      content: text,
+      content: `${setq(text)}`,
     })
     
     const response = await openai.chat(ctx.session.messages).finally(removeFile(mp3Path)) 
@@ -49,6 +52,8 @@ bot.on(message('voice'), async ctx => {
       role: openai.roles.ASSISTANT, 
       content: response.content,
     })
+
+    //console.log(ctx.session.messages);
 
     await ctx.reply(response.content)
   } catch (error) {
@@ -72,7 +77,7 @@ bot.on(message('text'), async ctx => {
 
     ctx.session.messages.push({
       role: openai.roles.USER, 
-      content: ctx.message.text,
+      content: `${setq(ctx.message.text)}`,
     })
     
     const response = await openai.chat(ctx.session.messages)
@@ -81,6 +86,8 @@ bot.on(message('text'), async ctx => {
       role: openai.roles.ASSISTANT, 
       content: response.content,
     })
+
+    //console.log(ctx.session.messages);
 
     await ctx.reply(response.content)
   } catch (error) {
